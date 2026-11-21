@@ -19,8 +19,8 @@
   'use strict';
 
   // ═════════════════════════ 1. YOUR FIREBASE PROJECT ═════════════════════════
-  const DB_URL  = 'https://YOUR-PROJECT-default-rtdb.firebaseio.com';
-  const API_KEY = 'YOUR_WEB_API_KEY';
+  const DB_URL  = 'https://obs-league-draft-default-rtdb.firebaseio.com';
+  const API_KEY = 'AIzaSyAXL7fpMe7QCY-hdp4hy-9X71RXGK6KmN8';
   const CHANNEL = 'main';
 
   // ═════════════════════════ 2. DRAFTER.LOL SELECTORS ═════════════════════════
