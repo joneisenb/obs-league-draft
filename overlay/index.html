@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Draft Overlay</title>
+  <!-- OBS Browser Source: 1920 x 1080. URL options: ?ch=main  ?demo  ?debug -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+  <div id="stage" class="hidden">
+    <header id="scorebar">
+      <div class="team blue">
+        <img class="logo" id="blue-logo" alt="">
+        <div class="name" id="blue-name">BLUE</div>
+        <div class="score" id="blue-score">0</div>
+      </div>
+      <div class="center">
+        <div class="phase" id="phase">Ban Phase 1</div>
+        <div class="timer" id="timer"></div>
+        <div class="game" id="game-label"></div>
+      </div>
+      <div class="team red">
+        <div class="score" id="red-score">0</div>
+        <div class="name" id="red-name">RED</div>
+        <img class="logo" id="red-logo" alt="">
+      </div>
+    </header>
+
+    <div id="timerbar"><div class="fill blue" id="timerfill-blue"></div><div class="fill red" id="timerfill-red"></div></div>
+
+    <section class="side blue" data-side="blue">
+      <div class="bans"></div>
+      <div class="picks"></div>
+    </section>
+    <section class="side red" data-side="red">
+      <div class="bans"></div>
+      <div class="picks"></div>
+    </section>
+  </div>
+
+  <div id="click-to-start" hidden>Click to enable audio (not needed in OBS)</div>
+  <pre id="debug" hidden></pre>
+
+  <script type="module" src="overlay.js"></script>
+</body>
+</html>

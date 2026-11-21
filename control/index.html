@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Draft Control</title>
+  <link rel="stylesheet" href="control.css">
+</head>
+<body>
+  <header>
+    <h1>Draft Control <span id="ch"></span></h1>
+    <span id="conn" class="pill">connecting…</span>
+  </header>
+
+  <section id="login" class="card">
+    <h2>Sign in</h2>
+    <form id="login-form">
+      <input id="email" type="email" placeholder="Firebase user email" required autocomplete="username">
+      <input id="password" type="password" placeholder="Password" required autocomplete="current-password">
+      <button>Sign in</button>
+      <p id="login-err" class="err"></p>
+    </form>
+  </section>
+
+  <main id="app" hidden>
+    <section class="card">
+      <h2>Live source</h2>
+      <p id="source">No draft received yet.</p>
+      <p class="hint">Open the drafter.lol spectator link in Chrome and press <b>Broadcast</b> on the page.</p>
+    </section>
+
+    <section class="card">
+      <h2>Teams</h2>
+      <div class="teams">
+        <fieldset class="blue">
+          <legend>Blue side</legend>
+          <input data-meta="blueName" placeholder="Team name">
+          <input data-meta="blueLogo" placeholder="Logo URL (optional)">
+          <div class="score"><button data-score="blueScore" data-d="-1">−</button><output id="blueScore">0</output><button data-score="blueScore" data-d="1">+</button></div>
+        </fieldset>
+        <fieldset class="red">
+          <legend>Red side</legend>
+          <input data-meta="redName" placeholder="Team name">
+          <input data-meta="redLogo" placeholder="Logo URL (optional)">
+          <div class="score"><button data-score="redScore" data-d="-1">−</button><output id="redScore">0</output><button data-score="redScore" data-d="1">+</button></div>
+        </fieldset>
+      </div>
+      <div class="row">
+        <input data-meta="gameLabel" placeholder="Game label, e.g. Game 2 · Bo3">
+        <button id="swap">⇄ Swap sides</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Overlay</h2>
+      <div class="row">
+        <label class="toggle"><input type="checkbox" data-meta-bool="visible" checked> Overlay visible</label>
+        <label class="toggle"><input type="checkbox" data-meta-bool="muted"> Mute music</label>
+      </div>
+      <div class="row">
+        <label>Music <input type="range" min="0" max="1" step="0.05" data-meta-num="musicVolume" value="0.6"></label>
+        <label>SFX <input type="range" min="0" max="1" step="0.05" data-meta-num="sfxVolume" value="0.9"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Manual override</h2>
+      <div class="row">
+        <label class="toggle danger"><input type="checkbox" data-meta-bool="manual"> Use manual draft (ignore drafter.lol)</label>
+        <button id="copy-live">Copy live draft → manual</button>
+        <button id="clear-manual">Clear manual</button>
+      </div>
+      <div id="manual-grid"></div>
+      <datalist id="champ-list"></datalist>
+    </section>
+  </main>
+
+  <script type="module" src="control.js"></script>
+</body>
+</html>
