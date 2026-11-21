@@ -5,9 +5,9 @@
 export const CONFIG = {
   firebase: {
     // Firebase console → Realtime Database → the URL at the top of the Data tab
-    databaseURL: 'https://YOUR-PROJECT-default-rtdb.firebaseio.com',
+    databaseURL: 'https://obs-league-draft-default-rtdb.firebaseio.com',
     // Firebase console → Project settings → General → Web API Key
-    apiKey: 'YOUR_WEB_API_KEY',
+    apiKey: 'AIzaSyAXL7fpMe7QCY-hdp4hy-9X71RXGK6KmN8',
   },
 
   // Default channel. Override per-URL with ?ch=name (e.g. two streams at once).
