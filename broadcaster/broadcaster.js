@@ -100,6 +100,10 @@
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
       <b style="font:600 13px system-ui">\ud83d\udce1 Draft Broadcaster</b><span data-s style="font:12px system-ui;opacity:.7">off</span>
     </div>
+    <div data-needlogin style="display:none;flex-direction:column;gap:6px">
+      <button data-popup>Sign in (opens a small window)</button>
+      <a data-inline href="#" style="font:12px system-ui;color:#9ab;text-align:center">Pop-up blocked? Sign in here instead</a>
+    </div>
     <form data-login style="display:none;flex-direction:column;gap:6px">
       <input data-email type="email" placeholder="Email" autocomplete="username" required>
       <input data-pw type="password" placeholder="Password" autocomplete="current-password" required>
@@ -115,14 +119,34 @@
   const setStatus = (s, c) => { status.textContent = s; status.style.color = c || ''; };
 
   let broadcasting = false, debug = false, last = '', pending = null, lastSent = 0;
+  const needLogin = $('[data-needlogin]');
+
+  // drafter.lol has keyboard shortcuts on its page; keep key presses inside our panel.
+  for (const t of ['keydown', 'keyup', 'keypress', 'beforeinput', 'input', 'paste', 'copy', 'cut'])
+    ui.addEventListener(t, e => e.stopPropagation());
+
+  // Sign in through a pop-up on the overlay's own site (drafter.lol can't intercept typing there).
+  const LOGIN_ORIGIN = new URL(BASE).origin;
+  $('[data-popup]').onclick = () => {
+    const w = window.open(`${BASE}broadcaster/login.html?origin=${encodeURIComponent(location.origin)}`, 'draftBroadcasterLogin', 'width=420,height=460');
+    if (!w) { setStatus('pop-up blocked', '#ff5a6a'); return; }
+    setStatus('waiting for sign-in...');
+  };
+  $('[data-inline]').onclick = e => { e.preventDefault(); needLogin.style.display = 'none'; form.style.display = 'flex'; $('[data-email]').focus(); };
+  window.addEventListener('message', e => {
+    if (e.origin !== LOGIN_ORIGIN || e.data?.type !== 'draft-broadcaster-login' || !e.data.refreshToken) return;
+    ss.set('draftBroadcasterRefresh', e.data.refreshToken); idToken = null;
+    needLogin.style.display = 'none';
+    start();
+  });
 
   async function start() {
     try {
       await put('source', { url: location.href, startedAt: Date.now() });
-      broadcasting = true; last = ''; btn.textContent = '\u23f9 Stop broadcasting'; form.style.display = 'none';
+      broadcasting = true; last = ''; btn.textContent = '\u23f9 Stop broadcasting'; form.style.display = 'none'; needLogin.style.display = 'none';
       setStatus('live', '#3ccf7a'); tick();
     } catch (e) {
-      if (e.message === 'NEED_LOGIN') { form.style.display = 'flex'; $('[data-email]').focus(); setStatus('sign in'); }
+      if (e.message === 'NEED_LOGIN') { needLogin.style.display = 'flex'; setStatus('sign in'); }
       else setStatus(e.message, '#ff5a6a');
     }
   }
@@ -150,7 +174,11 @@
     if (!pending) return;
     const d = pending; pending = null; lastSent = Date.now();
     try { await put('draft', { ...d, updatedAt: Date.now() }); setStatus('live', '#3ccf7a'); }
-    catch (e) { console.error('[broadcaster]', e); setStatus(e.message === 'NEED_LOGIN' ? 'sign in again' : e.message, '#ff5a6a'); last = ''; }
+    catch (e) {
+      console.error('[broadcaster]', e); last = '';
+      if (e.message === 'NEED_LOGIN') { needLogin.style.display = 'flex'; setStatus('sign in again', '#ff5a6a'); }
+      else setStatus(e.message, '#ff5a6a');
+    }
   }
 
   const dbg = document.createElement('pre');

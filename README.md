@@ -74,6 +74,7 @@ The code that reads drafter.lol is `broadcaster/broadcaster.js`, hosted on your 
 
 1. Open the control panel and sign in. In **Broadcaster bookmark**, drag **📡 Broadcast Draft** to your bookmarks bar. (Ctrl+Shift+B / ⌘+Shift+B shows the bar.)
 2. Open a drafter.lol **spectator** link and click the bookmark. A small **Draft Broadcaster** panel appears in the corner.
+3. Press **Broadcast this draft → Sign in**. A small window from your GitHub Pages site opens for the login, so drafter.lol's keyboard shortcuts can't grab your typing. If you're already signed into the control panel in that browser, it signs you in instantly and closes.
 
 Because everyone loads the same file from GitHub Pages, **fixing a selector in the repo updates everyone's bookmark**. Nobody re-installs anything. GitHub Pages can take a minute or two to publish a change.
 
@@ -106,7 +107,7 @@ The broadcaster has to know where drafter.lol puts each slot. Open a test draft'
 
 **Whoever runs the draft** (doesn't have to be the streamer):
 1. Open the control panel → set team names, logos, score, game label.
-2. Open the drafter.lol **spectator** link → click the **📡 Broadcast Draft** bookmark → **Broadcast this draft** → sign in. The panel shows `live`.
+2. Open the drafter.lol **spectator** link → click the **📡 Broadcast Draft** bookmark → **Broadcast this draft** → **Sign in** (pop-up window). The panel shows `live`.
 3. Keep that tab open during the draft. If the page reloads, click the bookmark again (you stay signed in for that tab).
 4. Next game: open the new spectator link, click the bookmark, Broadcast. Update the score.
 
