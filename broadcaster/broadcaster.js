@@ -15,18 +15,20 @@
     redPicks:  ids('red', 'pick'),
     blueBans:  ids('blue', 'ban'),
     redBans:   ids('red', 'ban'),
-    // The countdown is the big centered number (no id on drafter.lol); first match containing a number wins.
-    timer:     '[class*="font-display"][class*="text-3xl"], #draft-timer, #timer, [id*="timer"], [class*="timer"]',
+    timer:     '#timer',
+
   };
 
-  // LOCKED vs HOVERED. Not confirmed for drafter.lol yet: for now a slot counts as locked once it shows
-  // a champion, unless its image looks like a preview (a hover/preview/select class or faded opacity).
+  // LOCKED vs HOVERED on drafter.lol:
+  //   ban  hovered: <img class="... grayscale-0">       locked: "ban-lock-image" (or "grayscale-90" if locked before page load)
+  //   pick hovered: <img> without "pick-lock-image"    locked: "pick-lock-image"
+  // readDraft() also forces every filled slot before the newest one (in draft order) to locked,
+  // so a reloaded page can't show old picks as hovers.
   function isLocked(el, champ) {
     if (!champ) return false;
-    const img = el.querySelector('img');
-    if (el.matches('[class*="hover"], [class*="preview"], [class*="select"]')) return false;
-    if (img && (/hover|preview|select/i.test(img.className) || parseFloat(getComputedStyle(img).opacity) < 0.95)) return false;
-    return true;
+    const cls = el.querySelector('img')?.className || '';
+    if (/lock-image|grayscale-90/.test(cls)) return true;
+    return false;
   }
 
   // Champion from a slot. drafter.lol uses two image styles:
@@ -100,14 +102,25 @@
     const champ = readChamp(el);
     return { champ, locked: isLocked(el, champ) };
   });
+  // Tournament order, to tell which filled slot is the newest (the only one that can be hovering).
+  const ORDER = [['blue','bans',0],['red','bans',0],['blue','bans',1],['red','bans',1],['blue','bans',2],['red','bans',2],
+    ['blue','picks',0],['red','picks',0],['red','picks',1],['blue','picks',1],['blue','picks',2],['red','picks',2],
+    ['red','bans',3],['blue','bans',3],['red','bans',4],['blue','bans',4],
+    ['red','picks',3],['blue','picks',3],['blue','picks',4],['red','picks',4]];
+  function onlyNewestHovers(d) {
+    let newest = -1;
+    ORDER.forEach(([side, type, i], n) => { if (d[side][type][i].champ) newest = n; });
+    ORDER.forEach(([side, type, i], n) => { const s = d[side][type][i]; if (s.champ && n < newest) s.locked = true; });
+    return d;
+  }
   function readDraft() {
     const timerEl = find(SEL.timer).find(e => /\d/.test(e.textContent) && e.textContent.trim().length <= 6);
     const t = parseInt((timerEl?.textContent || '').replace(/\D/g, ''), 10);
-    return {
+    return onlyNewestHovers({
       blue: { picks: readSlots(SEL.bluePicks), bans: readSlots(SEL.blueBans) },
       red:  { picks: readSlots(SEL.redPicks),  bans: readSlots(SEL.redBans) },
       timer: Number.isFinite(t) ? t : null,
-    };
+    });
   }
 
   // --------- Panel UI ---------

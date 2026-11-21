@@ -82,7 +82,17 @@ Because everyone loads the same file from GitHub Pages, **fixing a selector in t
 
 > If clicking the bookmark shows a "Content Security Policy" error, drafter.lol is blocking bookmarklets. Use **Manual override** in the control panel instead.
 
-## 5. Finding the selectors (one-time, ~15 minutes)
+## 5. Selectors (already set up for drafter.lol)
+
+The broadcaster is already configured for drafter.lol as of November 2026:
+- **Slots:** `#blue-ban-1…5`, `#red-ban-1…5`, `#blue-pick-1…5`, `#red-pick-1…5`
+- **Champions:** the numeric champion id in ban images (`champions/22-128.webp`), and the name in pick splash images (`splashes/ahri-1280.webp`)
+- **Locked vs. hovered:** locked images have a `lock-image` class (bans locked before the page loaded have `grayscale-90` instead)
+- **Timer:** `#timer`
+
+You only need the steps below if drafter.lol changes its page and the overlay stops updating.
+
+### Finding the selectors again
 
 The broadcaster has to know where drafter.lol puts each slot. Open a test draft's **spectator link**, then:
 
