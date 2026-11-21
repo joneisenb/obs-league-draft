@@ -6,35 +6,42 @@
   if (window.__draftBroadcaster) { window.__draftBroadcaster.toggle(); return; }   // clicked twice -> show/hide panel
 
   // ========================= DRAFTER.LOL SELECTORS =========================
-  // PLACEHOLDERS: fill these in using DevTools on a spectator page
-  // (README -> "Finding the selectors"). Click Debug on the panel to see what matches.
+  // drafter.lol gives every slot an id: #blue-ban-1..5, #red-ban-1..5, #blue-pick-1..5, #red-pick-1..5.
+  // (Red's slots are in reverse order on the page, so match by id rather than position.)
+  // A value can be a list of selectors (one element each, in draft order) or one selector string.
+  const ids = (side, type) => [1, 2, 3, 4, 5].map(i => `#${side}-${type}-${i}`);
   const SEL = {
-    bluePicks: '.blue-side .pick',     // exactly 5 elements, in pick order
-    redPicks:  '.red-side .pick',
-    blueBans:  '.blue-side .ban',      // 5 elements, in ban order
-    redBans:   '.red-side .ban',
-    timer:     '.timer',               // element whose text is the countdown number
+    bluePicks: ids('blue', 'pick'),
+    redPicks:  ids('red', 'pick'),
+    blueBans:  ids('blue', 'ban'),
+    redBans:   ids('red', 'ban'),
+    timer:     '#draft-timer, #timer, [id*="timer"], [class*="timer"]',   // first match containing a number
   };
 
-  // LOCKED vs HOVERED. Edit to match the site:
-  //  A) class while hovering -> return !el.matches('.hovering')
-  //  B) class once locked    -> return el.matches('.locked')
-  //  C) hovered art is faded -> return getComputedStyle(el.querySelector('img')).opacity === '1'
+  // LOCKED vs HOVERED. Not confirmed for drafter.lol yet: for now a slot counts as locked once it shows
+  // a champion, unless its image looks like a preview (a hover/preview/select class or faded opacity).
   function isLocked(el, champ) {
     if (!champ) return false;
-    return !el.matches('.hover, .hovering, .selecting, .active');
+    const img = el.querySelector('img');
+    if (el.matches('[class*="hover"], [class*="preview"], [class*="select"]')) return false;
+    if (img && (/hover|preview|select/i.test(img.className) || parseFloat(getComputedStyle(img).opacity) < 0.95)) return false;
+    return true;
   }
 
-  // Champion from a slot: image URL, alt/title text, CSS background, or data attribute.
+  // Champion from a slot. drafter.lol images look like /game-sized/champions/22-128.webp,
+  // where 22 is Riot's numeric champion id (Ashe); the overlay turns ids into names and art.
   function readChamp(el) {
     const img = el.querySelector('img') || (el.tagName === 'IMG' ? el : null);
     const fromUrl = url => {
-      const m = url && url.match(/\/(?:champion\/(?:splash\/|loading\/|tiles\/)?)?([A-Za-z' .&]+?)(?:_\d+)?\.(?:png|jpe?g|webp)/i);
+      if (!url) return null;
+      const id = url.match(/champions?\/(\d+)(?:-\d+)?\.(?:png|jpe?g|webp)/i);
+      if (id) return id[1];
+      const m = url.match(/\/(?:champion\/(?:splash\/|loading\/|tiles\/)?)?([A-Za-z' .&]+?)(?:_\d+)?\.(?:png|jpe?g|webp)/i);
       return m ? m[1] : null;
     };
     if (img) {
-      const c = fromUrl(img.currentSrc || img.src) || img.alt || img.title;
-      if (c && !/placeholder|empty|none|default/i.test(c)) return c.trim();
+      const c = fromUrl(img.currentSrc || img.src) || img.title || img.alt;
+      if (c && !/^(ban|pick)$|placeholder|empty|none|default/i.test(c)) return c.trim();
     }
     const bg = getComputedStyle(el).backgroundImage;
     const c = bg && bg !== 'none' ? fromUrl(bg) : null;
@@ -78,14 +85,17 @@
   }
 
   // --------- Reading the page ---------
+  const find = sel => Array.isArray(sel) ? sel.map(x => document.querySelector(x)).filter(Boolean) : [...document.querySelectorAll(sel)];
+  const slotEl = (sel, i) => Array.isArray(sel) ? document.querySelector(sel[i]) : document.querySelectorAll(sel)[i];
   const readSlots = sel => Array.from({ length: 5 }, (_, i) => {
-    const el = document.querySelectorAll(sel)[i];
+    const el = slotEl(sel, i);
     if (!el) return { champ: null, locked: false };
     const champ = readChamp(el);
     return { champ, locked: isLocked(el, champ) };
   });
   function readDraft() {
-    const t = parseInt((document.querySelector(SEL.timer)?.textContent || '').replace(/\D/g, ''), 10);
+    const timerEl = find(SEL.timer).find(e => /\d/.test(e.textContent) && e.textContent.trim().length <= 6);
+    const t = parseInt((timerEl?.textContent || '').replace(/\D/g, ''), 10);
     return {
       blue: { picks: readSlots(SEL.bluePicks), bans: readSlots(SEL.blueBans) },
       red:  { picks: readSlots(SEL.redPicks),  bans: readSlots(SEL.redBans) },
@@ -195,17 +205,17 @@
   const OUT = { bluePicks: '3px solid #2f8cff', redPicks: '3px solid #ff3b4e', blueBans: '2px dashed #2f8cff', redBans: '2px dashed #ff3b4e', timer: '2px solid #ffd34d' };
   function showDebug(draft) {
     dbg.style.display = 'block';
-    const counts = Object.fromEntries(Object.keys(SEL).map(k => [k, document.querySelectorAll(SEL[k]).length]));
-    for (const k in OUT) document.querySelectorAll(SEL[k]).forEach(el => { if (!el.style.outline) { el.style.outline = OUT[k]; el.style.outlineOffset = '-2px'; } });
+    const counts = Object.fromEntries(Object.keys(SEL).map(k => [k, find(SEL[k]).length]));
+    for (const k in OUT) find(SEL[k]).forEach(el => { if (!el.style.outline) { el.style.outline = OUT[k]; el.style.outlineOffset = '-2px'; } });
     const fmt = s => s.map(x => (x.champ || '\u00b7') + (x.locked ? '\u2713' : x.champ ? '?' : '')).join('  ');
-    const text = `matches (want 5 each, timer 1): ${JSON.stringify(counts)}\n` +
+    const text = `matches (want 5 each, timer 1+): ${JSON.stringify(counts)}\n` +
       `BLUE bans : ${fmt(draft.blue.bans)}\nBLUE picks: ${fmt(draft.blue.picks)}\n` +
       `RED  bans : ${fmt(draft.red.bans)}\nRED  picks: ${fmt(draft.red.picks)}\ntimer: ${draft.timer}   channel: ${CH}\n(\u2713 locked, ? hovering)`;
     if (dbg.textContent !== text) dbg.textContent = text;
   }
   function clearDebug() {
     dbg.style.display = 'none';
-    for (const k in OUT) document.querySelectorAll(SEL[k]).forEach(el => { el.style.outline = ''; });
+    for (const k in OUT) find(SEL[k]).forEach(el => { el.style.outline = ''; });
   }
 
   window.__draftBroadcaster = { toggle: () => (ui.style.display = ui.style.display === 'none' ? 'flex' : 'none') };
