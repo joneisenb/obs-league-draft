@@ -1,4 +1,4 @@
-import { channel } from '../config.js';
+import { CONFIG, channel } from '../config.js';
 import { normalizeDraft } from '../shared/draft.js';
 import { loadChampions, allChampions, resolve } from '../shared/ddragon.js';
 import { listen, Auth, write } from '../shared/firebase.js';
@@ -9,6 +9,14 @@ const $ = id => document.getElementById(id);
 const auth = new Auth();
 let tree = {};
 $('ch').textContent = `· ${CH}`;
+
+// Bookmarklet: loads broadcaster.js from this same site into the drafter.lol tab.
+{
+  const src = new URL('../broadcaster/broadcaster.js', location.href).href + (CH !== CONFIG.channel ? `?ch=${encodeURIComponent(CH)}&` : '?');
+  const bm = $('bookmarklet');
+  bm.href = `javascript:(()=>{var s=document.createElement('script');s.src='${src}v='+Date.now();document.body.appendChild(s)})()`;
+  bm.onclick = e => { e.preventDefault(); alert('Drag this to your bookmarks bar, then click it on the drafter.lol page.'); };
+}
 
 const store = {
   get: k => { try { return localStorage.getItem(k); } catch { return null; } },

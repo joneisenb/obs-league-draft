@@ -25,3 +25,4 @@ fieldset.blue { border-left: 4px solid var(--blue); } fieldset.red { border-left
 .mside h3 { margin: 0 0 6px; font-size: 13px; } .mside.blue h3 { color: var(--blue); } .mside.red h3 { color: var(--red); }
 .mslot { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
 .mslot span { width: 46px; color: var(--muted); font-size: 12px; } .mslot input[type=text] { flex: 1; min-width: 0; padding: 4px 8px; }
+.bookmarklet { display: inline-block; margin-left: 8px; padding: 6px 14px; border-radius: 99px; background: var(--blue); color: #fff; font-weight: 600; text-decoration: none; cursor: grab; }
