@@ -15,7 +15,8 @@
     redPicks:  ids('red', 'pick'),
     blueBans:  ids('blue', 'ban'),
     redBans:   ids('red', 'ban'),
-    timer:     '#draft-timer, #timer, [id*="timer"], [class*="timer"]',   // first match containing a number
+    // The countdown is the big centered number (no id on drafter.lol); first match containing a number wins.
+    timer:     '[class*="font-display"][class*="text-3xl"], #draft-timer, #timer, [id*="timer"], [class*="timer"]',
   };
 
   // LOCKED vs HOVERED. Not confirmed for drafter.lol yet: for now a slot counts as locked once it shows
@@ -28,14 +29,18 @@
     return true;
   }
 
-  // Champion from a slot. drafter.lol images look like /game-sized/champions/22-128.webp,
-  // where 22 is Riot's numeric champion id (Ashe); the overlay turns ids into names and art.
+  // Champion from a slot. drafter.lol uses two image styles:
+  //   bans:  /game-sized/champions/22-128.webp    -> 22 = Riot's numeric champion id (Ashe)
+  //   picks: /game-sized/splashes/aphelios-1280.webp -> champion name
+  // Pick slots also show the name as text, used as a last resort. The overlay maps ids/names to art.
   function readChamp(el) {
     const img = el.querySelector('img') || (el.tagName === 'IMG' ? el : null);
     const fromUrl = url => {
       if (!url) return null;
       const id = url.match(/champions?\/(\d+)(?:-\d+)?\.(?:png|jpe?g|webp)/i);
       if (id) return id[1];
+      const splash = url.match(/splash(?:es)?\/([a-z0-9'._&-]+?)(?:[-_]\d+)?\.(?:png|jpe?g|webp)/i);
+      if (splash) return splash[1];
       const m = url.match(/\/(?:champion\/(?:splash\/|loading\/|tiles\/)?)?([A-Za-z' .&]+?)(?:_\d+)?\.(?:png|jpe?g|webp)/i);
       return m ? m[1] : null;
     };
@@ -47,7 +52,9 @@
     const c = bg && bg !== 'none' ? fromUrl(bg) : null;
     if (c) return c;
     const t = el.getAttribute('data-champion') || el.getAttribute('title');
-    return t ? t.trim() : null;
+    if (t) return t.trim();
+    const text = (el.innerText || '').trim().split('\n')[0].trim();
+    return /^[A-Za-z][A-Za-z' .&]{1,20}$/.test(text) ? text : null;
   }
 
   // ========================= Nothing below needs editing =====================
